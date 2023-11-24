@@ -2,18 +2,22 @@ import './Style/bootstrap/css/bootstrap.min.css';
 import './Style/App.css';
 import Logo from './Assets/Logo.png'
 import { useEffect, useRef, useState } from 'react';
+import EditStock from './Components/EditStock';
 
 function App() {
 
   const [SignedIn, SetSignedIn] = useState(false);
   const [apiKey, setApiKey] = useState("");
+  const [text, setText] = useState("")
   const [business, setBusiness] = useState("");
   const [clothing, setClothing] = useState([])
   const [postClothing, SetPostClothing] = useState(false)
   const [Loader, setLoader] = useState(false)
   const [src, setSrc] = useState("")
+  const [selItem, setSelItem] = useState({})
+  const [selOpen, setSelOpen] = useState(false)
 
-  const input = useRef();
+  const input = useRef(); 
 
 
   const title = useRef();
@@ -47,7 +51,16 @@ function App() {
     })
   }
 
+  function EditStocks(item){
+    setSelItem(item)
+    setSelOpen(true)
+  }
+
   function LogIn(){
+    if(input.current.value.length < 1){
+      setText("Please fill in your API key")
+    }
+    else{
     setLoader(true)
     fetch("https://localhost:7123/api/APIKey/" + input.current.value)
     .then(res => res.json())
@@ -56,14 +69,26 @@ function App() {
       setApiKey(result.key)
       setBusiness(result.brand)
       SetSignedIn(true)
+      setText("")
     }, (error) => {
+      setLoader(false)
 
+      setText("API key does not exist")
     })
   }
+  }
+
   function goBack(){
-    setClothing([])
-    SetPostClothing(false)
-    setSrc("")
+    if(selOpen){
+      setSelOpen(false)
+      setSelItem({})
+    }
+    else{
+      setClothing([])
+      SetPostClothing(false)
+      setSrc("")
+    }
+    
   }
   
 
@@ -164,6 +189,7 @@ function removeTags(str) {
             Sign in
             <input type='text' className='form-control' placeholder='API Key' ref={input} onKeyDown={checkEnter}>
             </input>
+            {text.length > 0 ? <div className='error'>{text}</div> : <></>}
             <button className='btn btn-primary m-1' onClick={LogIn}>
               Sign in
             </button>
@@ -172,7 +198,12 @@ function removeTags(str) {
         ) : <>
         {clothing.length > 0 ? (
           <>
-          <div className='row'>
+
+          {selOpen ? (
+            <EditStock item={selItem} back={goBack}></EditStock>
+          ) : (
+            <>
+                      <div className='row'>
           <div className='col-auto'>
           <div className='border border-dark rounded p-2' onClick={goBack} style={{cursor: 'pointer'}}>
             <h1 className='text-start'>Go Back</h1>
@@ -180,25 +211,41 @@ function removeTags(str) {
             </div>
             </div>
           {clothing.map(item => (
-            <>
+            <div key={item.id}>
             <div className='row m-3 p-2 items rounded'>
               <div className='col text-center' style={{position: 'relative'}}>
                 <div >
                 <h3>{item.title}</h3>
                 <h6>{removeTags(item.body_html)}</h6>
                 
-                <button className='btn btn-primary bottom'>
+                <div className='row'>
+                  <div className='col'>
+                  <button className='btn btn-primary bottom' onClick={() => EditStocks(item)}>
                   Edit stock
                 </button>
+                  </div>
+                  <div className='col'>
+                    <a href={'https://www.agacent.com/products/' + item.handle}>
+                  <button className='btn btn-dark bottom'>
+                  View on Agacent
+                </button>
+                </a>
+                  </div>
+                </div>
+                
                 </div>
               </div>
               <div className='col'>
                 <img src={item.images[0] !== undefined ? item.images[0].src : ""  } style={{width: "50%", height: "auto"}}></img>
               </div>
             </div>
-            </>
+            </div>
 
 ))}
+            </>
+          )}
+
+
           </>
         ) : 
         <>
