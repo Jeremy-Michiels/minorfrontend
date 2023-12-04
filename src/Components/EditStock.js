@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import {useLocation } from "react-router-dom"
 import StockOptions from "../Parts/StockOptions"
 import ModalForStock from "./ModalForStock"
 
@@ -7,7 +6,6 @@ function EditStock(props){
 
     const [item, setItem] = useState({})
     const [load, setLoad] = useState(false)
-    const [back, setBack] = useState(() => {})
     const [selOpt, setSelOpt] = useState({})
     const [modalOpen, setModalOpen] = useState(false)
     const [curModal, setCurModal] = useState({})
@@ -19,6 +17,7 @@ function EditStock(props){
             setItem(props.item)
             setLoad(true)
         }
+        // eslint-disable-next-line
     }, [])
     if(load){
         return (
@@ -70,6 +69,8 @@ function EditStock(props){
                                 
                         </div>
                         ) : <></>}
+
+                        {console.log(item)}
                         
 
                         <div className="m-2">
@@ -119,7 +120,7 @@ function EditStock(props){
 
                     </div>
                     <div className="col">
-                        <img src={item.images[0].src} style={{width: "60%"}} className="border border-dark rounded"></img>
+                        <img src={item.images[0].src} style={{width: "60%"}} className="border border-dark rounded" alt="Product"></img>
                     </div>
                     <div className="row">
                     <div className="col">

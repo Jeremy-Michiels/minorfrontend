@@ -1,7 +1,7 @@
 import './Style/bootstrap/css/bootstrap.min.css';
 import './Style/App.css';
 import Logo from './Assets/Logo.png'
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import EditStock from './Components/EditStock';
 
 function App() {
@@ -16,6 +16,8 @@ function App() {
   const [src, setSrc] = useState("")
   const [selItem, setSelItem] = useState({})
   const [selOpen, setSelOpen] = useState(false)
+  const [activeSizes, SetActiveSizes] = useState([])
+  const [currentId, setCurrentId] = useState(1);
 
   const input = useRef(); 
 
@@ -26,12 +28,52 @@ function App() {
   const image = useRef();
 
   function submit(){
+    var variants = []
+    var sizes = []
+    var bool = false
+    if(activeSizes.length < 1){
+      alert("Please add at least 1 size/price")
+      bool=true
+    }
+    if(title.current.value === ""){
+      alert("Please fill in a Title")
+      bool=true
+    }
+    if(desc.current.value === ""){
+      alert("Please fill in a valid description")
+      bool = true
+    }
+    if(product_Type.current.value === ""){
+      alert("Please fill in a valid product type")
+      bool = true
+    }
+    if(src === ""){
+      alert("Please fill in a valid picture")
+      bool = true
+    }
+
+    activeSizes.forEach(y => {
+      if(y.option1 === "" || y.price === ""){
+        alert("Please fill in all the size/price values")
+        bool = true
+      }
+
+      variants.push({
+        option1: y.option1,
+        price: y.price,
+        sku: y.sku,
+      })
+      sizes.push(y.option1)
+    })
+    if(!bool){
     const product = {
       title: title.current.value,
       body_html: desc.current.value,
       vendor: business,
       product_type: product_Type.current.value,
-      images: [{"attachment": src}]
+      images: [{"attachment": src}],
+      variants: variants,
+      options: [{name: "Size", values: sizes}]
     }
     fetch("https://localhost:7123/api/Shopify/PostProduct", {
       method: "POST",
@@ -49,6 +91,7 @@ function App() {
     }, (error) => {
       console.log(error)
     })
+    }
   }
 
   function EditStocks(item){
@@ -85,6 +128,8 @@ function App() {
     }
     else{
       setClothing([])
+      SetActiveSizes([])
+      setCurrentId(1)
       SetPostClothing(false)
       setSrc("")
     }
@@ -120,7 +165,7 @@ function removeTags(str) {
       setLoader(false)
     })
   }
-  function blobj(idk){
+  function blobj(){
     const reader = new FileReader();
     reader.addEventListener("load", () => {
       setSrc(reader.result)
@@ -131,6 +176,42 @@ function removeTags(str) {
     if(image.current.files[0]){
       reader.readAsDataURL(image.current.files[0])
     }
+  }
+
+  function changePrices(s, plus){
+
+    var list = activeSizes.map(y => {
+      if(y.id === s.id){
+        return {
+          ...y, 
+        price: plus.target.value,
+        }
+
+      }
+      else{
+        return y
+      }
+    })
+    console.log(list)
+    SetActiveSizes(list)
+
+  }
+
+  function changeSizes(s, plus){
+    var list = activeSizes.map(y => {
+      if(y.id === s.id){
+        return {
+          ...y, 
+        option1: plus.target.value,
+        }
+
+      }
+      else{
+        return y
+      }
+    })
+    console.log(list)
+    SetActiveSizes(list)
   }
 
   function LogOut(){
@@ -236,7 +317,7 @@ function removeTags(str) {
                 </div>
               </div>
               <div className='col'>
-                <img src={item.images[0] !== undefined ? item.images[0].src : ""  } style={{width: "50%", height: "auto"}}></img>
+                <img src={item.images[0] !== undefined ? item.images[0].src : ""  } style={{width: "50%", height: "auto"}} alt='Selected'></img>
               </div>
             </div>
             </div>
@@ -274,7 +355,42 @@ function removeTags(str) {
                 
               </div>
               <div className='col text-center'>
-                {image.current !== undefined ? <img src={src} className='border border-dark rounded'  style={{width: "50%", height: "auto"}}></img> : <></>}
+                {image.current !== undefined ? <img src={src} className='border border-dark rounded'  style={{width: "50%", height: "auto"}} alt='Selected'></img> : <></>}
+              </div>
+              <div>
+                <h4>Sizes</h4>
+                <div className='border border-dark rounded p-2'>
+                  {activeSizes.map(s => (
+                    <>
+                    <div className='row p-2'>
+                    <div className='col'>
+                        <input type='text' className='form-control' placeholder='size' onChange={(plus) => changeSizes(s, plus)}>
+
+                        </input>
+                      </div>
+                      <div className='col'>
+                        <input type='text' className='form-control' placeholder='price' onChange={(plus) => changePrices(s, plus)}>
+
+                        </input>
+                      </div>
+                      
+                    </div>
+                    </>
+                  ))}
+                  <div className='text-center'>
+                    <button className='btn btn-success' onClick={() => {
+                      SetActiveSizes(old => [...old, {
+                        id: currentId,
+                        option1: "",
+                        price: "",
+                        sku: "1"
+                      }])
+                      setCurrentId(id => id + 1)
+                    }}>
+                      +
+                      </button>
+                  </div>
+                </div>
               </div>
               <div>
               <button className='btn btn-primary m-3' onClick={submit}>
