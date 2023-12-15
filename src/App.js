@@ -73,7 +73,8 @@ function App() {
       product_type: product_Type.current.value,
       images: [{"attachment": src}],
       variants: variants,
-      options: [{name: "Size", values: sizes}]
+      options: [{name: "Size", values: sizes}],
+      status: "archived"
     }
     fetch("https://localhost:7123/api/Shopify/PostProduct", {
       method: "POST",
